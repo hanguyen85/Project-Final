@@ -1,0 +1,16 @@
+<div class="container">
+    {{#if newReservation}}
+    <div>
+        <h2>Payment successfull</h2>
+        <p>Room Number: {{newReservation.roomNumber}}</p>
+        <p>Check-In: {{dateFormat newReservation.checkIn "DD/MM/YYYY"}}</p>
+        <p>Check-Out: {{dateFormat newReservation.checkOut "DD/MM/YYYY"}}</p>
+        <p>Total Price: ${{newReservation.totalPrice}}</p>
+    </div>
+    {{else}}
+    <div>
+        <p class="text-danger">No reservation information available</p>
+    </div>
+    {{/if}}
+    <a href="/reservation/history" class="btn btn-primary">History</a>
+</div>

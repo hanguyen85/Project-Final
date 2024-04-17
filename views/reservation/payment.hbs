@@ -1,0 +1,80 @@
+<div class="container-fluid d-flex justify-content-center">
+    <div class="mt-5 w-50">
+        {{#if room}}
+        <div class="">
+            <h5 class="fw-bold">PayPal Purchase</h5>
+        </div>
+        <hr />
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col" class="col-3"></th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Room Name</td>
+                    {{#if room}}
+                    <td>{{room.roomNumber}}</td>
+                    {{else}}
+                    <td class="fw-bold" style="color: red;">No room</td>
+                    {{/if}}
+                </tr>
+                <tr>
+                    <td>Room Type</td>
+                    {{#if room}}
+                    <td>{{room.roomType.roomName}}</td>
+                    {{else}}
+                    <td class="fw-bold" style="color: red;">No room type</td>
+                    {{/if}}
+                </tr>
+                <tr>
+                    <td>Check-in</td>
+                    {{#if checkIn}}
+                    <td>
+                        {{dateFormat checkIn "DD/MM/YYYY"}}
+                    </td>
+                    {{else}}
+                    <td class="fw-bold" style="color: red;">No date</td>
+                    {{/if}}
+                </tr>
+                <tr>
+                    <td>Check-out</td>
+                    {{#if checkOut}}
+                    <td>{{dateFormat checkOut "DD/MM/YYYY"}}</td>
+                    {{else}}
+                    <td class="fw-bold" style="color: red;">No date</td>
+                    {{/if}}
+                </tr>
+                <tr>
+                    <td>Total</td>
+                    {{#if total}}
+                    <td>${{total}}</td>
+                    {{else}}
+                    <td class="fw-bold" style="color: red;">No total</td>
+                    {{/if}}
+                </tr>
+            </tbody>
+        </table>
+        <form action="/reservation/payment" method="post">
+            <input type="hidden" name="roomType" value="{{room.roomType.roomNumber}}">
+            <input type="hidden" name="roomNumber" value="{{room.roomNumber}}">
+            <input type="hidden" name="checkIn" value="{{checkIn}}">
+            <input type="hidden" name="checkOut" value="{{checkOut}}">
+            <input type="hidden" name="total" value="{{total}}">
+            <div class="d-flex justify-content-end">
+                <input type="submit" value="Buy" class="btn btn-primary" style="width: 100px;">
+            </div>
+        </form>
+        {{else}}
+        <div class="m-2">
+            <h3 class="text-center" style="color: red;">You don't have a reservation yet</h3>
+            <div class="d-flex justify-content-center">
+                <a href="/room" class="nav-link fw-bold" style="color:aquamarine">Go back to selecting
+                    room</a>
+            </div>
+        </div>
+        {{/if}}
+    </div>
+</div>
