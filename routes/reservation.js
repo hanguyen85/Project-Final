@@ -178,8 +178,8 @@ router.post("/payment", async (req, res) => {
         payment_method: "paypal",
       },
       redirect_urls: {
-        return_url: "http://localhost:3000/reservation/success",
-        cancel_url: "http://localhost:3000/room",
+        return_url: "https://booking-1i21.onrender.com/reservation/success",
+        cancel_url: "https://booking-1i21.onrender.com/room",
       },
       transactions: [
         {
