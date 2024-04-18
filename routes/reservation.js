@@ -82,23 +82,27 @@ router.get("/confirmation/:id", checkUser, async (req, res) => {
 
 router.post("/confirmation/:id", checkUser, async (req, res) => {
   try {
+    var user = req.user;
+    var userId = await userModel.findById(user);
     var roomId = req.session.roomId;
-    var checkIn = req.body.checkIn ? new Date(req.body.checkIn) : null;
+    var roomDetail = await roomModel.findById(roomId).populate("roomType");
+    var roomNumber = roomDetail.roomNumber;
+    var roomType = roomDetail.roomType.roomName;
+    var roomPrice = roomDetail.price;
+    var roomStatus = roomDetail.status;
+    var checkIn = new Date(req.body.checkIn);
     if (checkIn) {
       checkIn.setHours(0, 0, 0, 0);
     }
-    var checkOut = req.body.checkOut ? new Date(req.body.checkOut) : null;
+    var checkOut = new Date(req.body.checkOut);
     if (checkOut) {
       checkOut.setHours(0, 0, 0, 0);
     }
     var date = new Date();
     date.setHours(0, 0, 0, 0);
-    var user = req.user;
-    var room = await roomModel.findById(roomId).populate("roomType");
-    var userId = await userModel.findById(user);
-    var total = totalPrice(room.price, checkIn, checkOut);
+    var total = totalPrice(roomPrice, checkIn, checkOut);
     req.session.total = total;
-    if (room.status === "unavailable") {
+    if (roomStatus === "unavailable") {
       throw new Error("Room is in use");
     } else if (!checkIn || !checkOut) {
       throw new Error("Please select check-in and check-out dates");
@@ -110,8 +114,8 @@ router.post("/confirmation/:id", checkUser, async (req, res) => {
       throw new Error("Check-out date must be after check-in date");
     } else {
       var newReservation = {
-        roomNumber: room.roomNumber,
-        roomType: room.roomType.roomName,
+        roomNumber: roomNumber,
+        roomType: roomType,
         user: userId,
         checkIn: checkIn,
         checkOut: checkOut,
@@ -120,7 +124,12 @@ router.post("/confirmation/:id", checkUser, async (req, res) => {
       };
     }
     req.session.reservation = newReservation;
-    res.redirect("/reservation/payment");
+    req.session.save((err) => {
+      if (err) {
+        throw err;
+      }
+      res.redirect("/reservation/payment");
+    });
   } catch (err) {
     req.session.room = await roomModel.findById(roomId).populate("roomType");
     var room = req.session.room;
@@ -137,21 +146,17 @@ router.get("/payment", async (req, res) => {
   try {
     var total = req.session.total || null;
     var roomId = req.session.roomId || null;
-    var checkIn = req.session.reservation
-      ? req.session.reservation.checkIn
-      : null;
-    var checkOut = req.session.reservation
-      ? req.session.reservation.checkOut
-      : null;
-
-    delete req.session.total;
-    delete req.session.roomId;
-    delete req.session.reservation;
-
-    req.session.room = await roomModel.findById(roomId).populate("roomType");
-    var room = req.session.room || null;
-    delete req.session.room;
-    res.render("reservation/payment", { total, room, checkIn, checkOut });
+    var checkIn, checkOut;
+    if (req.session.reservation) {
+      checkIn = req.session.reservation.checkIn;
+      checkOut = req.session.reservation.checkOut;
+    } else {
+      checkIn = null;
+      checkOut = null;
+    }
+    var roomDetail =
+      (await roomModel.findById(roomId).populate("roomType")) || null;
+    res.render("reservation/payment", { total, roomDetail, checkIn, checkOut });
   } catch (err) {
     console.log(err);
     res.redirect("/");
@@ -171,9 +176,8 @@ router.post("/payment", async (req, res) => {
         payment_method: "paypal",
       },
       redirect_urls: {
-        return_url:
-          "https://project-final-6yuy.onrender.com/reservation/success",
-        cancel_url: "https://project-final-6yuy.onrender.com/room",
+        return_url: "http://localhost:3000/reservation/success",
+        cancel_url: "http://localhost:3000/room",
       },
       transactions: [
         {
@@ -217,14 +221,17 @@ router.get("/success", async (req, res) => {
   try {
     const payerID = req.query.PayerID;
     const paymentId = req.query.paymentId;
-    const user = req.user;
-    const reservationDetails = req.session.reservation;
-    const roomID = req.session.roomId;
-    const roomDetail = await roomModel.findById(roomID).populate("roomType");
-    const roomNumber = roomID;
-    const { checkIn, checkOut, totalPrice, status } = reservationDetails;
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
+    var user = req.user;
+    var reservationDetails = req.session.reservation;
+    var roomID = req.session.roomId;
+    var roomDetail = await roomModel.findById(roomID).populate("roomType");
+    var roomNum = roomDetail.roomNumber;
+    var roomType = roomDetail.roomType.roomName;
+    var roomPrice = roomDetail.price;
+    var roomNumber = roomID;
+    var { checkIn, checkOut, totalPrice, status } = reservationDetails;
+    var checkInDate = new Date(checkIn);
+    var checkOutDate = new Date(checkOut);
 
     const response = {
       body: {
@@ -233,11 +240,10 @@ router.get("/success", async (req, res) => {
         table: {
           data: [
             {
-              RoomNumber:
-                roomDetail.roomNumber + " - " + roomDetail.roomType.roomName,
+              RoomNumber: roomNum + " - " + roomType,
               CheckIn: checkInDate.toLocaleDateString("vi-VN"),
               CheckOut: checkOutDate.toLocaleDateString("vi-VN"),
-              Price: "$" + roomDetail.price,
+              Price: "$" + roomPrice,
               TotalPrice: "$" + totalPrice,
             },
           ],
@@ -312,7 +318,7 @@ router.get("/success", async (req, res) => {
           console.log("Get payment success");
           console.log(JSON.stringify(payment));
           const reservationView = {
-            roomNumber: roomDetail.roomNumber,
+            roomNumber: roomNum,
             checkIn: checkIn,
             checkOut: checkOut,
             totalPrice: totalPrice,
@@ -320,6 +326,10 @@ router.get("/success", async (req, res) => {
           res.render("reservation/success", {
             newReservation: reservationView,
           });
+          delete req.session.total;
+          delete req.session.roomId;
+          delete req.session.reservation;
+          delete req.session.room;
         }
       }
     );
