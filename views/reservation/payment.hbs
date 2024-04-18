@@ -1,6 +1,6 @@
 <div class="container-fluid d-flex justify-content-center">
     <div class="mt-5 w-50">
-        {{#if room}}
+        {{#if roomDetail}}
         <div class="">
             <h5 class="fw-bold">PayPal Purchase</h5>
         </div>
@@ -15,16 +15,16 @@
             <tbody>
                 <tr>
                     <td>Room Name</td>
-                    {{#if room}}
-                    <td>{{room.roomNumber}}</td>
+                    {{#if roomDetail}}
+                    <td>{{roomDetail.roomNumber}}</td>
                     {{else}}
                     <td class="fw-bold" style="color: red;">No room</td>
                     {{/if}}
                 </tr>
                 <tr>
                     <td>Room Type</td>
-                    {{#if room}}
-                    <td>{{room.roomType.roomName}}</td>
+                    {{#if roomDetail}}
+                    <td>{{roomDetail.roomType.roomName}}</td>
                     {{else}}
                     <td class="fw-bold" style="color: red;">No room type</td>
                     {{/if}}
@@ -58,8 +58,8 @@
             </tbody>
         </table>
         <form action="/reservation/payment" method="post">
-            <input type="hidden" name="roomType" value="{{room.roomType.roomNumber}}">
-            <input type="hidden" name="roomNumber" value="{{room.roomNumber}}">
+            <input type="hidden" name="roomType" value="{{roomDetail.roomType.roomNumber}}">
+            <input type="hidden" name="roomNumber" value="{{roomDetail.roomNumber}}">
             <input type="hidden" name="checkIn" value="{{checkIn}}">
             <input type="hidden" name="checkOut" value="{{checkOut}}">
             <input type="hidden" name="total" value="{{total}}">
