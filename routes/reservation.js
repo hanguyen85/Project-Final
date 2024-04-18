@@ -124,6 +124,8 @@ router.post("/confirmation/:id", checkUser, async (req, res) => {
       };
     }
     req.session.reservation = newReservation;
+    // lưu dữ liệu phiên trước khi chuyển hướng đến tuyến GET /thanh toán.
+    // Điều này đảm bảo rằng dữ liệu phiên được lưu trước khi yêu cầu tiếp theo được xử lý.
     req.session.save((err) => {
       if (err) {
         throw err;
