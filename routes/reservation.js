@@ -80,6 +80,22 @@ router.get("/confirmation/:id", checkUser, async (req, res) => {
   }
 });
 
+async function checkDuplicateReservation(roomId, checkIn, checkOut) {
+  const existingReservation = await reservationModel.find({
+    roomNumber: roomId,
+    status: { $in: ["using", "pending"] },
+  });
+
+  for (const reservation of existingReservation) {
+    const existingCheckIn = new Date(reservation.checkIn);
+    const existingCheckOut = new Date(reservation.checkOut);
+    if (checkOut >= existingCheckIn && checkIn <= existingCheckOut) {
+      return true;
+    }
+  }
+  return false;
+}
+
 router.post("/confirmation/:id", checkUser, async (req, res) => {
   try {
     var user = req.user;
@@ -94,18 +110,29 @@ router.post("/confirmation/:id", checkUser, async (req, res) => {
     if (checkIn) {
       checkIn.setHours(0, 0, 0, 0);
     }
+    if (!req.body.checkIn) {
+      throw new Error("Please select a check-in date");
+    }
     var checkOut = new Date(req.body.checkOut);
     if (checkOut) {
       checkOut.setHours(0, 0, 0, 0);
     }
+    if (!req.body.checkOut) {
+      throw new Error("Please select a check-out date");
+    }
     var date = new Date();
     date.setHours(0, 0, 0, 0);
     var total = totalPrice(roomPrice, checkIn, checkOut);
+    var isDuplicate = await checkDuplicateReservation(
+      roomId,
+      checkIn,
+      checkOut
+    );
     req.session.total = total;
-    if (roomStatus === "unavailable") {
-      throw new Error("Room is in use");
-    } else if (!req.body.checkIn || !req.body.checkOut) {
+    if (!req.body.checkIn || !req.body.checkOut) {
       throw new Error("Please select check-in and check-out dates");
+    } else if (isDuplicate) {
+      throw new Error("Room is in use");
     } else if (checkIn < date) {
       throw new Error("Check-in date must be in the future");
     } else if (checkIn.getTime() === checkOut.getTime()) {
@@ -124,8 +151,6 @@ router.post("/confirmation/:id", checkUser, async (req, res) => {
       };
     }
     req.session.reservation = newReservation;
-    // lưu dữ liệu phiên trước khi chuyển hướng đến tuyến GET /thanh toán.
-    // Điều này đảm bảo rằng dữ liệu phiên được lưu trước khi yêu cầu tiếp theo được xử lý.
     req.session.save((err) => {
       if (err) {
         throw err;
