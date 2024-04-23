@@ -43,12 +43,7 @@ const transporter = nodemailer.createTransport({
 
 function totalPrice(price, checkIn, checkOut) {
   var oneDay = 24 * 60 * 60 * 1000;
-  let diffDays;
-  if (checkIn < checkOut) {
-    diffDays = Math.round(Math.abs((checkIn - checkOut) / oneDay));
-  } else {
-    diffDays = Math.round(Math.abs((checkOut - checkIn) / oneDay));
-  }
+  var diffDays = Math.round(Math.abs((checkOut - checkIn) / oneDay));
   var total = price * diffDays;
   return total;
 }
