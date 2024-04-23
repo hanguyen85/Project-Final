@@ -104,7 +104,7 @@ router.post("/confirmation/:id", checkUser, async (req, res) => {
     req.session.total = total;
     if (roomStatus === "unavailable") {
       throw new Error("Room is in use");
-    } else if (!checkIn || !checkOut) {
+    } else if (!req.body.checkIn || !req.body.checkOut) {
       throw new Error("Please select check-in and check-out dates");
     } else if (checkIn < date) {
       throw new Error("Check-in date must be in the future");
