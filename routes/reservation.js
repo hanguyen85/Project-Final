@@ -280,7 +280,7 @@ router.get("/success", async (req, res) => {
           button: {
             color: "#22BC66", // Optional action button color
             text: "View the booking",
-            link: "https://mailgen.js/confirm?s=d9729feb74992cc3482b350163a1a010",
+            link: "https://booking-1i21.onrender.com/reservation/history",
           },
         },
         outro:
