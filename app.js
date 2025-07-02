@@ -5,18 +5,19 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var session = require("express-session");
 var flash = require("connect-flash");
+var sql = require("mssql");
 var MongoDBStore = require("connect-mongodb-session")(session);
 
 var indexRouter = require("./routes/index");
 var userRouter = require("./routes/user");
 var manageRouter = require("./routes/manage");
 var reservationRouter = require("./routes/reservation");
-const port = process.env.PORT || 4000;
+const port = process.env.PORT;
 
 var app = express();
 
 var store = new MongoDBStore({
-  uri: "mongodb+srv://ha:test123@cluster0.zyzyjlr.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0",
+  uri: "mongodb://localhost:27017/",
   collection: "mySession",
 });
 
@@ -37,11 +38,35 @@ app.use(flash());
 var mongoose = require("mongoose");
 // set mongodb connection
 var database =
-  "mongodb+srv://ha:test123@cluster0.zyzyjlr.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0";
+  "mongodb://localhost:27017/";
 mongoose
   .connect(database)
   .then(() => console.log("Connection successfull"))
   .catch((err) => console.log("Error: " + err));
+
+const config = {
+  user: "xuandau1",
+  password: "123@123xd",
+  server: "113.190.44.219",
+  database: "Tabas_XuanDau1_Test",
+  options: {
+    encrypt: true, // Use encryption
+    trustServerCertificate: true, // Trust the server certificate
+    cryptoCredentialsDetails: {
+      minVersion: "TLSv1.2", // Specify the minimum TLS version
+    },
+    enableArithAbort: true,
+    servername: "113.190.44.219",
+  },
+};
+
+sql.connect(config, (err) => {
+  if (err) {
+    console.log("Error connecting to the database:", err);
+  } else {
+    console.log("Connected to the database SQL server");
+  }
+});
 
 //2. congfig body-parse library (get data from client-side)
 var bodyParser = require("body-parser");

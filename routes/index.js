@@ -76,7 +76,17 @@ router.post("/contact", async (req, res) => {
       subject: "Contact us", // Subject line
       html: mail, // html body
     };
+    const mailOptions2 = {
+      from: {
+        name: "Web TJ Hotel",
+        address: "<Deptrai29st@gmail.com>",
+      }, // sender address
+      to: email, // user's email
+      subject: "Contact us", // Subject line
+      html: mail, // html body
+    };
     await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions2);
     res.redirect("/");
   } catch (err) {
     res.redirect("/contact");
