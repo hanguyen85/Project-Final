@@ -364,6 +364,7 @@ router.get("/success", async (req, res) => {
 router.get("/history", checkUser, async (req, res) => {
   const user = req.user;
   console.log("hello");
+  console.log("giờ gửi lại sang test");
   const reservation = await reservationModel.find({ user: user._id }).populate({
     path: "roomNumber",
     model: "room",
